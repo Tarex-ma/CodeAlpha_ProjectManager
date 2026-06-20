@@ -118,9 +118,20 @@ class LogoutView(APIView):
     Example response (204): (no body)
     """
 
+    permission_classes = [IsAuthenticated]
+
     def post(self, request: Request) -> Response:
-        # Since we are using JWT authentication, logout on the client
-        # side simply discards the tokens. We return 204 to indicate success.
+        # Optional: blacklist refresh token to invalidate session
+        refresh_token = request.data.get('refresh')
+        if refresh_token:
+            try:
+                from rest_framework_simplejwt.tokens import RefreshToken
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except Exception as e:
+                # If token invalid or blacklist not configured, ignore
+                pass
+        # Client should discard tokens; we simply return success
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
