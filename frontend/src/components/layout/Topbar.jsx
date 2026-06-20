@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { clearAuth } from '../../utils/tokenUtils';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Topbar() {
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -24,13 +23,12 @@ export default function Topbar() {
 
 
 
+  const { logout } = useAuth();
+
   const handleLogout = async (e) => {
     e.preventDefault();
     try {
-      // Ensure Axios sends CSRF cookie and uses POST
-      await axios.post('/api/v1/auth/logout/', {}, { withCredentials: true });
-      // Clear stored JWT tokens and user data
-      clearAuth();
+      await logout();
       // Redirect to login page after logout
       window.location.href = '/login';
     } catch (err) {
