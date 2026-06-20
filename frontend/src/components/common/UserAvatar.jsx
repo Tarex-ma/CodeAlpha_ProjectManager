@@ -50,4 +50,4 @@ export default function UserAvatar({
       )}
     </div>
   );
-}s
+}

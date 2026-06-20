@@ -1,44 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { useDashboard } from '../hooks/useDashboard';
+import { useCreateProject } from '../hooks/useCreateProject';
+import ProjectsSection from '../components/dashboard/ProjectsSection';
+import CreateProjectModal from '../components/dashboard/CreateProjectModal';
 
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    fetch('/api/v1/projects/')
-      .then((res) => {
-        if (!res.ok) throw new Error('Network response was not ok');
-        return res.json();
-      })
-      .then((data) => {
-        setProjects(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
-  }, []);
-
-  if (loading) return <div className="p-4">Loading projects…</div>;
-  if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
+  const { projects, loading, createProject, deleteProject } = useDashboard();
+  const modal = useCreateProject(createProject);
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Projects</h1>
-      {projects.length === 0 ? (
-        <p>No projects found.</p>
-      ) : (
-        <ul className="space-y-2">
-          {projects.map((proj) => (
-            <li key={proj.id} className="p-2 bg-[#111] rounded">
-              <h2 className="text-xl font-semibold">{proj.title || proj.name}</h2>
-              <p className="text-gray-400">{proj.description}</p>
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-[1400px] mx-auto">
+      <ProjectsSection
+        projects={projects}
+        loading={loading}
+        onOpenModal={modal.openModal}
+        onDelete={deleteProject}
+      />
+      <CreateProjectModal open={modal.open} onClose={modal.closeModal} onSubmit={createProject} />
     </div>
   );
 }
+

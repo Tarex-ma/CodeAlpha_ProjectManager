@@ -8,14 +8,16 @@ class TaskQuerySet(models.QuerySet):
     def for_board(self, board_id: int):
         return (
             self.filter(board_id=board_id)
-            .select_related("assignee", "created_by", "board")
+            .select_related("created_by", "board")
+            .prefetch_related("assignees", "labels")
             .order_by("position")
         )
 
     def for_project(self, project_id: int):
         return (
             self.filter(project_id=project_id)
-            .select_related("assignee", "created_by", "board")
+            .select_related("created_by", "board")
+            .prefetch_related("assignees", "labels")
             .order_by("board__position", "position")
         )
 
@@ -23,7 +25,7 @@ class TaskQuerySet(models.QuerySet):
         return self.filter(project__members=user).distinct()
 
     def assigned_to(self, user):
-        return self.filter(assignee=user)
+        return self.filter(assignees=user)
 
     def overdue(self):
         from django.utils import timezone
@@ -81,11 +83,15 @@ class Task(models.Model):
         on_delete=models.CASCADE,
         related_name="tasks",
     )
-    assignee = models.ForeignKey(
+    assignees = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        null=True, blank=True,
-        on_delete=models.SET_NULL,
+        blank=True,
         related_name="assigned_tasks",
+    )
+    labels = models.ManyToManyField(
+        "tasks.Label",
+        blank=True,
+        related_name="task_labels",
     )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -111,12 +117,57 @@ class Task(models.Model):
         indexes = [
             models.Index(fields=["board", "position"]),
             models.Index(fields=["project", "status"]),
-            models.Index(fields=["assignee", "due_date"]),
         ]
 
     def __str__(self) -> str:
         return f"[{self.get_priority_display()}] {self.title}"
 
+# ---------------------------------------------------------------------------
+# Additional models for full task management
+# ---------------------------------------------------------------------------
+
+class Label(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    color = models.CharField(max_length=7, default="#cccccc", help_text="Hex color code, e.g., #ff5733")
+
+    class Meta:
+        verbose_name = "Label"
+        verbose_name_plural = "Labels"
+        ordering = ["name"]
+
+    def __str__(self) -> str:
+        return self.name
+
+ 
+
+class ActivityLog(models.Model):
+    class Action(models.TextChoices):
+        CREATED = "created", "Task created"
+        UPDATED = "updated", "Task updated"
+        MOVED = "moved", "Task moved"
+        ASSIGNEE_ADDED = "assignee_added", "Assignee added"
+        ASSIGNEE_REMOVED = "assignee_removed", "Assignee removed"
+        PRIORITY_CHANGED = "priority_changed", "Priority changed"
+        DUE_DATE_CHANGED = "due_date_changed", "Due date changed"
+        COMMENT_ADDED = "comment_added", "Comment added"
+        COMMENT_EDITED = "comment_edited", "Comment edited"
+        COMMENT_DELETED = "comment_deleted", "Comment deleted"
+        LABEL_ADDED = "label_added", "Label added"
+        LABEL_REMOVED = "label_removed", "Label removed"
+
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="activity_logs")
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="activity_logs")
+    action = models.CharField(max_length=30, choices=Action.choices)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    metadata = models.JSONField(blank=True, null=True, help_text="Additional context, e.g., {\"from\": \"Todo\", \"to\": \"In Progress\"}")
+
+    class Meta:
+        ordering = ["-timestamp"]
+        verbose_name = "Activity Log"
+        verbose_name_plural = "Activity Logs"
+
+    def __str__(self) -> str:
+        return f"{self.get_action_display()} on {self.task}"
     def save(self, *args, **kwargs):
         if self.board_id and not self.project_id:
             self.project_id = self.board.project_id

@@ -31,8 +31,8 @@ export default function CommentItem({
 }) {
   const textareaRef = useRef(null);
 
-  const isOwn = !currentUserId || comment.author_id === currentUserId;
-  const edited = comment.updated_at && comment.updated_at !== comment.created_at;
+  const isOwn = !currentUserId || comment.author?.id === currentUserId;
+  const edited = comment.is_edited;
 
   useEffect(() => {
     if (isEditing && textareaRef.current) {
@@ -59,8 +59,8 @@ export default function CommentItem({
     <div className="flex items-start gap-3 group">
       {/* Avatar */}
       <UserAvatar
-        name={comment.author_name ?? 'User'}
-        avatar={comment.author_avatar}
+        name={comment.author?.full_name || comment.author?.email || comment.author_name || 'User'}
+        avatar={comment.author?.avatar ?? comment.author_avatar}
         size="sm"
         color={comment.author_color}
         className="flex-shrink-0 mt-0.5"
@@ -70,7 +70,7 @@ export default function CommentItem({
         {/* Author + time */}
         <div className="flex items-center gap-2 mb-1.5">
           <span className="text-[12px] font-semibold text-white">
-            {comment.author_name ?? 'Unknown'}
+            {comment.author?.full_name || comment.author?.email || comment.author_name || 'Unknown'}
           </span>
           <span className="text-[10px] text-[#444]">
             {timeAgo(comment.created_at)}
@@ -115,7 +115,7 @@ export default function CommentItem({
         ) : (
           <div className="bg-[#1a1a1a] border border-[#1e1e1e] rounded-xl px-3.5 py-3 relative">
             <p className="text-[13px] text-[#bbb] leading-relaxed whitespace-pre-wrap break-words">
-              {comment.body}
+              {comment.content ?? comment.body}
             </p>
 
             {/* Actions (own comments only) */}

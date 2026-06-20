@@ -10,15 +10,10 @@ export default function Topbar() {
   });
 
   useEffect(() => {
-    // Apply or remove 'dark' class on root element
+    // Apply or remove 'dark' class on <html> element based on isDarkMode
     const root = document.documentElement;
-    if (isDarkMode) {
-      root.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      root.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
+    root.classList.toggle('dark', isDarkMode);
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
 
@@ -39,13 +34,13 @@ export default function Topbar() {
   const toggleDarkMode = () => setIsDarkMode((prev) => !prev);
 
   return (
-    <header className="w-full h-16 bg-[#111] flex items-center justify-between px-4 shadow-md">
-      <h1 className="text-xl font-semibold text-white">Project Manager</h1>
+    <header className="w-full h-16 bg-white dark:bg-gray-900 flex items-center justify-between px-4 shadow-md">
+      <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Project Manager</h1>
       <nav className="flex items-center space-x-4">
         <a href="#" className="text-gray-300 hover:text-white">Settings</a>
-        <button onClick={handleLogout} className="text-gray-300 hover:text-white focus:outline-none">Logout</button>
-        <button aria-label="Notifications" className="text-gray-300 hover:text-white focus:outline-none">🔔</button>
-        <button aria-label="Toggle Dark Mode" onClick={toggleDarkMode} className="text-gray-300 hover:text-white focus:outline-none">🌙</button>
+        <button onClick={handleLogout} className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white focus:outline-none">Logout</button>
+        <button aria-label="Notifications" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white focus:outline-none">🔔</button>
+        <button aria-label="Toggle Dark Mode" onClick={toggleDarkMode} className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white focus:outline-none">🌙</button>
       </nav>
     </header>
   );

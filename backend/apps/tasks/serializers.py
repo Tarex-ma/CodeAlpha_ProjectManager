@@ -40,12 +40,30 @@ class TaskBoardSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+from .models import Task, Label, ActivityLog
+
+# ── Embedded label summary ────────────────────────────────────────────────
+class LabelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Label
+        fields = ["id", "name", "color"]
+
+# ── Activity Log Serializer ───────────────────────────────────────────────
+class ActivityLogSerializer(serializers.ModelSerializer):
+    actor = TaskUserSerializer(read_only=True)
+    action_display = serializers.CharField(source="get_action_display", read_only=True)
+
+    class Meta:
+        model = ActivityLog
+        fields = ["id", "actor", "action", "action_display", "timestamp", "metadata"]
+
 # ══════════════════════════════════════════════════════════════════════════
 # READ serializer
 # ══════════════════════════════════════════════════════════════════════════
 
 class TaskSerializer(serializers.ModelSerializer):
-    assignee   = TaskUserSerializer(read_only=True)
+    assignees  = TaskUserSerializer(many=True, read_only=True)
+    labels     = LabelSerializer(many=True, read_only=True)
     created_by = TaskUserSerializer(read_only=True)
     board      = TaskBoardSerializer(read_only=True)
     is_overdue = serializers.SerializerMethodField()
@@ -58,7 +76,8 @@ class TaskSerializer(serializers.ModelSerializer):
             "description",
             "board",
             "project",
-            "assignee",
+            "assignees",
+            "labels",
             "created_by",
             "priority",
             "status",
@@ -91,11 +110,17 @@ class TaskCreateSerializer(serializers.ModelSerializer):
     project is inferred from the board (never sent by the client).
     """
 
-    assignee_id = serializers.PrimaryKeyRelatedField(
+    assignee_ids = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
-        source="assignee",
+        source="assignees",
+        many=True,
         required=False,
-        allow_null=True,
+    )
+    label_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Label.objects.all(),
+        source="labels",
+        many=True,
+        required=False,
     )
 
     class Meta:
@@ -103,7 +128,8 @@ class TaskCreateSerializer(serializers.ModelSerializer):
         fields = [
             "title",
             "description",
-            "assignee_id",
+            "assignee_ids",
+            "label_ids",
             "priority",
             "status",
             "due_date",
@@ -120,26 +146,38 @@ class TaskCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Due date cannot be in the past.")
         return value
 
-    def validate_assignee_id(self, user):
-        """Assignee must be a member of the project."""
+    def validate_assignee_ids(self, users):
+        """Assignees must be members of the project."""
         project = self.context["project"]
-        if user and not ProjectMember.objects.filter(project=project, user=user).exists():
-            raise serializers.ValidationError(
-                "Assignee must be a member of the project."
-            )
-        return user
+        if users:
+            # check if all users are members
+            valid_ids = ProjectMember.objects.filter(project=project, user__in=users).values_list("user_id", flat=True)
+            for user in users:
+                if user.id not in valid_ids:
+                    raise serializers.ValidationError(
+                        f"User {user.email} is not a member of the project."
+                    )
+        return users
 
     def create(self, validated_data: dict) -> Task:
         board   = self.context["board"]
         project = self.context["project"]
         user    = self.context["request"].user
 
+        assignees = validated_data.pop("assignees", [])
+        labels = validated_data.pop("labels", [])
+
         validated_data["board"]      = board
         validated_data["project"]    = project
         validated_data["created_by"] = user
         validated_data["position"]   = Task.objects.next_position(board.pk)
 
-        return Task.objects.create(**validated_data)
+        task = Task.objects.create(**validated_data)
+        if assignees:
+            task.assignees.set(assignees)
+        if labels:
+            task.labels.set(labels)
+        return task
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -154,11 +192,17 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
     Use TaskMoveSerializer to change the board.
     """
 
-    assignee_id = serializers.PrimaryKeyRelatedField(
+    assignee_ids = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
-        source="assignee",
+        source="assignees",
+        many=True,
         required=False,
-        allow_null=True,
+    )
+    label_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Label.objects.all(),
+        source="labels",
+        many=True,
+        required=False,
     )
 
     class Meta:
@@ -166,7 +210,8 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
         fields = [
             "title",
             "description",
-            "assignee_id",
+            "assignee_ids",
+            "label_ids",
             "priority",
             "status",
             "due_date",
@@ -179,13 +224,16 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Task title cannot be blank.")
         return value
 
-    def validate_assignee_id(self, user):
+    def validate_assignee_ids(self, users):
         project = self.context["project"]
-        if user and not ProjectMember.objects.filter(project=project, user=user).exists():
-            raise serializers.ValidationError(
-                "Assignee must be a member of the project."
-            )
-        return user
+        if users:
+            valid_ids = ProjectMember.objects.filter(project=project, user__in=users).values_list("user_id", flat=True)
+            for user in users:
+                if user.id not in valid_ids:
+                    raise serializers.ValidationError(
+                        f"User {user.email} is not a member of the project."
+                    )
+        return users
 
     def validate_position(self, value: int) -> int:
         if value < 0:

@@ -140,7 +140,7 @@ export function useTaskDetail(taskId, { onTaskUpdated, onTaskDeleted } = {}) {
     if (!text || !taskId) return;
     setSubmittingCmt(true);
     try {
-      const { data } = await apiCreateComment(taskId, { body: text });
+      const { data } = await apiCreateComment(taskId, { content: text });
       setComments((prev) => [...prev, data]);
       setCommentText('');
     } catch {
@@ -153,7 +153,7 @@ export function useTaskDetail(taskId, { onTaskUpdated, onTaskDeleted } = {}) {
   // ── Comment: edit ──────────────────────────────────────────────
   const startEditComment = useCallback((comment) => {
     setEditingCmtId(comment.id);
-    setEditingCmtText(comment.body);
+    setEditingCmtText(comment.content ?? comment.body ?? '');
   }, []);
 
   const cancelEditComment = useCallback(() => {
@@ -166,7 +166,7 @@ export function useTaskDetail(taskId, { onTaskUpdated, onTaskDeleted } = {}) {
     if (!text) return;
     setSavingCmt(true);
     try {
-      const { data } = await apiUpdateComment(commentId, { body: text });
+      const { data } = await apiUpdateComment(commentId, { content: text });
       setComments((prev) => prev.map((c) => (c.id === commentId ? data : c)));
       setEditingCmtId(null);
     } catch {

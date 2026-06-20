@@ -18,6 +18,7 @@ Extra filtered views (query-param driven, no extra URL needed):
   GET    /api/v1/projects/{project_pk}/boards/{board_pk}/tasks/?overdue=true
 """
 
+from django.db import models
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -39,6 +40,7 @@ from .serializers import (
     TaskReorderSerializer,
     TaskSerializer,
     TaskUpdateSerializer,
+    ActivityLogSerializer,
 )
 
 
@@ -82,7 +84,12 @@ class TaskViewSet(viewsets.ViewSet):
     # ── Shared queryset ────────────────────────────────────────────────────
 
     def _get_queryset(self):
-        qs = Task.objects.for_board(self.request.board.pk)
+        if self.request.board:
+            qs = Task.objects.for_board(self.request.board.pk)
+        elif self.request.project:
+            qs = Task.objects.for_project(self.request.project.pk)
+        else:
+            qs = Task.objects.filter(project__members=self.request.user).distinct()
 
         # Optional filters via query params
         assignee = self.request.query_params.get("assignee")
@@ -91,13 +98,20 @@ class TaskViewSet(viewsets.ViewSet):
         overdue  = self.request.query_params.get("overdue")
 
         if assignee:
-            qs = qs.filter(assignee_id=assignee)
+            qs = qs.filter(assignees__id=assignee)
         if priority and priority in Task.Priority.values:
             qs = qs.filter(priority=priority)
         if status_ and status_ in Task.Status.values:
             qs = qs.filter(status=status_)
         if overdue and overdue.lower() == "true":
             qs = qs.overdue()
+
+        search_query = self.request.query_params.get("search")
+        if search_query:
+            qs = qs.filter(
+                models.Q(title__icontains=search_query) |
+                models.Q(description__icontains=search_query)
+            )
 
         return qs
 
@@ -282,7 +296,14 @@ class TaskViewSet(viewsets.ViewSet):
         limit = int(request.query_params.get("limit", 8))
         tasks = (
             Task.objects
-            .filter(assignee=request.user, board__project__members=request.user)
+            .filter(assignees=request.user, board__project__members=request.user)
             .order_by("-created_at")[:limit]
         )
         return Response(TaskSerializer(tasks, many=True).data)
+
+    @action(detail=True, methods=["get"], url_path="activity")
+    def activity_log(self, request, pk=None, **kwargs):
+        """GET /api/v1/projects/{p}/boards/{b}/tasks/{id}/activity/"""
+        task = self._get_task(pk)
+        logs = task.activity_logs.select_related("actor").order_by("-timestamp")
+        return Response(ActivityLogSerializer(logs, many=True).data)

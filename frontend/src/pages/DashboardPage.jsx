@@ -1,40 +1,18 @@
 import { useAuth } from '../context/AuthContext';
 import { useDashboard } from '../hooks/useDashboard';
 import { useCreateProject } from '../hooks/useCreateProject';
-
-import StatsSection      from '../components/dashboard/StatsSection';
-import ProjectsSection   from '../components/dashboard/ProjectsSection';
-import RecentTasks       from '../components/dashboard/RecentTasks';
-import ActivityFeed      from '../components/dashboard/ActivityFeed';
 import CreateProjectModal from '../components/dashboard/CreateProjectModal';
+import StatsSection from '../components/dashboard/StatsSection';
 
-/**
- * DashboardPage
- *
- * Top-level page rendered at "/".
- * Composes all dashboard sections and wires up data + modal state.
- */
 export default function DashboardPage() {
   const { user } = useAuth();
-
-  const {
-    projects,
-    recentTasks,
-    stats,
-    activity,
-    loading,
-    error,
-    refetch,
-    createProject,
-    deleteProject,
-  } = useDashboard();
-
-  // Modal state lives in useCreateProject, passing createProject as onSubmit
+  const { stats, loading, error, refetch, createProject } = useDashboard();
   const modal = useCreateProject(createProject);
 
-  const firstName = user?.first_name || user?.username || 'there';
+/**
+ * DashboardPage – displays only the stats overview.
+ */
 
-  // ── Error state ────────────────────────────────────────────────
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
@@ -64,7 +42,7 @@ export default function DashboardPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-[20px] sm:text-[22px] font-semibold text-white tracking-tight">
-              Welcome back, {firstName} 👋
+              Welcome back, {user?.firstName || 'User'} 👋
             </h1>
             <p className="text-[13px] text-[#555] mt-1">
               Here's what's happening with your projects today.
@@ -104,19 +82,7 @@ export default function DashboardPage() {
         {/* ── Stats row ──────────────────────────────────────── */}
         <StatsSection stats={stats} loading={loading} />
 
-        {/* ── Projects grid ──────────────────────────────────── */}
-        <ProjectsSection
-          projects={projects}
-          loading={loading}
-          onOpenModal={modal.openModal}
-          onDelete={deleteProject}
-        />
-
-        {/* ── Bottom row: tasks + activity ───────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
-          <RecentTasks tasks={recentTasks} loading={loading} />
-          <ActivityFeed activity={activity}  loading={loading} />
-        </div>
+        {/* Sections moved to separate pages */}
 
       </div>
 

@@ -42,23 +42,23 @@ class CommentViewSet(viewsets.ViewSet):
     def initial(self, request: Request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
 
-        request.project = get_object_or_404(
-            Project.objects.for_user(request.user),
-            pk=self.kwargs["project_pk"],
-        )
-        request.board = get_object_or_404(
-            Board.objects.filter(project=request.project),
-            pk=self.kwargs["board_pk"],
-        )
-        request.task = get_object_or_404(
-            Task.objects.filter(board=request.board),
-            pk=self.kwargs["task_pk"],
-        )
+        task_id = self.kwargs.get("task_pk") or request.query_params.get("task") or request.data.get("task")
+        if task_id:
+            request.task = get_object_or_404(Task.objects.filter(project__members=request.user), pk=task_id)
+            request.board = request.task.board
+            request.project = request.task.project
+        else:
+            # If no task is specified, we might be hitting detail endpoint, in which case the object permission handles it
+            request.task = None
+            request.board = None
+            request.project = None
 
     # ── Shared helpers ─────────────────────────────────────────────────────
 
     def _get_queryset(self):
-        return Comment.objects.for_task(self.request.task.pk)
+        if self.request.task:
+            return Comment.objects.for_task(self.request.task.pk)
+        return Comment.objects.filter(task__project__members=self.request.user)
 
     def _get_comment(self, pk: int) -> Comment:
         return get_object_or_404(self._get_queryset(), pk=pk)

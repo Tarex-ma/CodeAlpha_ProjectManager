@@ -6,8 +6,9 @@ export const updateTask = (id, data) => api.patch(`/tasks/${id}/`, data);
 export const deleteTask = (id)       => api.delete(`/tasks/${id}/`);
 
 // ── Comments ──────────────────────────────────────────────────────
-export const getComments    = (taskId)           => api.get(`/tasks/${taskId}/comments/`);
-export const createComment  = (taskId, data)     => api.post(`/tasks/${taskId}/comments/`, data);
+// Use global /api/v1/comments/ endpoint, filtering by task id
+export const getComments    = (taskId)           => api.get(`/comments/?task=${taskId}`);
+export const createComment  = (taskId, data)     => api.post(`/comments/`, { ...data, task: taskId });
 export const updateComment  = (commentId, data)  => api.patch(`/comments/${commentId}/`, data);
 export const deleteComment  = (commentId)        => api.delete(`/comments/${commentId}/`);
 
