@@ -77,6 +77,13 @@ class Project(models.Model):
         on_delete=models.CASCADE,
         related_name="owned_projects",
     )
+    team        = models.ForeignKey(
+        'teams.Team',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="projects",
+    )
     # Access User objects via project.members.all()
     # Access ProjectMember rows via project.projectmember_set.all()
     members = models.ManyToManyField(

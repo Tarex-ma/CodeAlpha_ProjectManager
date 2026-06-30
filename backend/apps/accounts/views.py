@@ -12,6 +12,7 @@ from .serializers import (
     RegisterSerializer,
     UpdateProfileSerializer,
     UserSerializer,
+    UserSettingsSerializer,
     get_tokens_for_user,
 )
 
@@ -202,6 +203,17 @@ class UpdateProfileView(generics.UpdateAPIView):
     def update(self, request: Request, *args, **kwargs) -> Response:
         kwargs["partial"] = True  # always partial
         return super().update(request, *args, **kwargs)
+
+class UserSettingsViewSet(generics.RetrieveUpdateAPIView):
+    """Retrieve and update the authenticated user's settings."""
+    serializer_class = UserSettingsSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        from .models import UserSettings
+        # Ensure a UserSettings instance exists
+        settings_obj, _ = UserSettings.objects.get_or_create(user=self.request.user)
+        return settings_obj
 
 
 class ChangePasswordView(APIView):

@@ -88,3 +88,37 @@ class Profile(models.Model):
 
     def __str__(self) -> str:
         return f"Profile of {self.user.email}"
+
+class UserSettings(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='settings')
+    # Appearance
+    THEME_CHOICES = [
+        ('light', 'Light'),
+        ('dark', 'Dark'),
+        ('system', 'System'),
+    ]
+    theme = models.CharField(max_length=20, choices=THEME_CHOICES, default='system')
+    accent_color = models.CharField(max_length=7, default='#0066ff')  # HEX color
+    # Notifications stored as JSON for flexibility
+    notifications = models.JSONField(default=dict, blank=True)
+    # Language & Region
+    language = models.CharField(max_length=10, default='en')
+    timezone = models.CharField(max_length=50, default='UTC')
+    # Preferences
+    DEFAULT_DASHBOARD_CHOICES = [
+        ('projects', 'Projects'),
+        ('tasks', 'Tasks'),
+        ('calendar', 'Calendar'),
+    ]
+    default_dashboard = models.CharField(max_length=20, choices=DEFAULT_DASHBOARD_CHOICES, default='projects')
+    CALENDAR_VIEW_CHOICES = [
+        ('month', 'Month'),
+        ('week', 'Week'),
+        ('day', 'Day'),
+    ]
+    default_calendar_view = models.CharField(max_length=10, choices=CALENDAR_VIEW_CHOICES, default='month')
+    task_sorting = models.CharField(max_length=20, default='priority')
+    project_sorting = models.CharField(max_length=20, default='created_at')
+
+    def __str__(self):
+        return f"Settings for {self.user.email}"

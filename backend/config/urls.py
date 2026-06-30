@@ -36,6 +36,7 @@ urlpatterns = [
     path("api/v1/tasks/", include("apps.tasks.urls")),
     path("api/v1/comments/", include("apps.comments.urls")),
     path("api/v1/notifications/", include("apps.notifications.urls")),
+    path("api/v1/", include("apps.teams.urls")),
     # Dashboard endpoints
     path("api/v1/dashboard/stats/", DashboardStatsView.as_view(), name="dashboard-stats"),
     path("api/v1/dashboard/activity/", DashboardActivityView.as_view(), name="dashboard-activity"),

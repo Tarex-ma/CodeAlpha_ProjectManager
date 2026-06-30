@@ -175,6 +175,24 @@ class BoardViewSet(viewsets.ViewSet):
         board.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(detail=False, methods=["get"], url_path="board")
+    def board(self, request, **kwargs) -> Response:
+        """
+        GET /api/v1/projects/{project_pk}/boards/board/
+        Returns all boards for the project with their tasks embedded.
+        """
+        boards = self._get_queryset().prefetch_related("tasks")
+        # Use existing BoardSerializer for board fields
+        board_serializer = BoardSerializer(boards, many=True)
+        # Serialize tasks for each board
+        from apps.tasks.serializers import TaskSerializer
+        board_data = []
+        for board, board_repr in zip(boards, board_serializer.data):
+            tasks = board.tasks.all()
+            board_repr["tasks"] = TaskSerializer(tasks, many=True).data
+            board_data.append(board_repr)
+        return Response(board_data)
+
     # ── reorder (bulk) ────────────────────────────────────────────────────
 
     @action(detail=False, methods=["post"], url_path="reorder")

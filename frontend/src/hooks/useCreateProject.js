@@ -1,24 +1,30 @@
 import { useState, useCallback } from 'react';
 
 const COLORS = [
-  '#7c5cbf', // purple
-  '#2196f3', // blue
-  '#4caf50', // green
-  '#ff9800', // orange
+  '#5c6bc0', // blue-purple (selected/first)
+  '#9c27b0', // purple
   '#e91e63', // pink
+  '#f44336', // red-pink
+  '#ff9800', // orange
+  '#ffc107', // yellow
+  '#4caf50', // green
+  '#009688', // dark teal
+  '#2196f3', // blue
   '#00bcd4', // cyan
-  '#f44336', // red
-  '#9c27b0', // violet
 ];
 
 const ICONS = ['🌐', '📱', '📣', '🔌', '📄', '🎯', '🚀', '💡'];
 
+const PRIORITIES = ['low', 'medium', 'high'];
+
 const INITIAL = {
   name:        '',
   description: '',
-  color:       COLORS[0],
-  icon:        ICONS[0],
+  color:       '#5c6bc0',
+  icon:        '🌐',
   status:      'active',
+  priority:    'medium',
+  start_date:  '',
   due_date:    '',
 };
 
@@ -64,7 +70,7 @@ export function useCreateProject(onSubmit) {
     setLoading(true);
     try {
       await onSubmit({
-        name:        form.name.trim(),
+        title:       form.name.trim(),
         description: form.description.trim(),
         color:       form.color,
         icon:        form.icon,
@@ -84,6 +90,6 @@ export function useCreateProject(onSubmit) {
     form, handleChange, setField,
     errors, apiErr, loading,
     handleSubmit,
-    COLORS, ICONS,
+    COLORS, ICONS, PRIORITIES,
   };
 }

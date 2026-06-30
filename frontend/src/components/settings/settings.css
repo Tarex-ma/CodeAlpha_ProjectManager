@@ -1,0 +1,94 @@
+/* src/components/settings/settings.css */
+
+/* CSS Variables for theming */
+:root {
+  --color-bg: #f9fafb;
+  --color-bg-dark: #1f2937;
+  --color-text: #111827;
+  --color-text-dark: #f9fafb;
+  --color-primary: #2563eb; /* accent indigo */
+  --color-primary-dark: #818cf8;
+  --color-sidebar-bg: #ffffff;
+  --color-sidebar-bg-dark: #111827;
+  --color-sidebar-border: #e5e7eb;
+  --color-sidebar-border-dark: #374151;
+}
+
+[data-theme="dark"] {
+  --color-bg: var(--color-bg-dark);
+  --color-text: var(--color-text-dark);
+  --color-sidebar-bg: var(--color-sidebar-bg-dark);
+  --color-sidebar-border: var(--color-sidebar-border-dark);
+}
+
+.settings-container {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: 250px 1fr;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.settings-sidebar {
+  background: var(--color-sidebar-bg);
+  border-right: 1px solid var(--color-sidebar-border);
+  padding: 2rem;
+}
+
+.settings-sidebar h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.settings-sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.settings-link {
+  display: block;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 0.5rem;
+  color: inherit;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.settings-link:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.settings-link.active {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.settings-main {
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .settings-container {
+    grid-template-columns: 1fr;
+  }
+  .settings-sidebar {
+    display: none;
+  }
+  .settings-mobile-nav {
+    display: flex;
+    justify-content: space-around;
+    background: var(--color-sidebar-bg);
+    border-top: 1px solid var(--color-sidebar-border);
+    padding: 0.5rem 0;
+  }
+  .settings-mobile-nav a {
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem 0;
+  }
+}

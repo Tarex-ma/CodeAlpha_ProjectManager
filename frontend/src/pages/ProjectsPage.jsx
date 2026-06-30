@@ -5,7 +5,7 @@ import ProjectsSection from '../components/dashboard/ProjectsSection';
 import CreateProjectModal from '../components/dashboard/CreateProjectModal';
 
 export default function ProjectsPage() {
-  const { projects, loading, createProject, deleteProject } = useDashboard();
+  const { projects, loading, createProject, deleteProject, refetch } = useDashboard();
   const modal = useCreateProject(createProject);
 
   return (

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Pencil, Trash2 } from 'lucide-react';
 
 const STATUS_STYLES = {
   active:    { dot: 'bg-[#4caf50]', bg: 'bg-[#1b3a2e]', text: 'text-[#4caf50]', label: 'Active'    },
@@ -15,9 +16,9 @@ const STATUS_STYLES = {
  *   project   – project object from API
  *   onDelete  – (id) => void
  */
-export default function ProjectCard({ project, onDelete }) {
+export default function ProjectCard({ project, onDelete, onEdit }) {
   const navigate     = useNavigate();
-  const [menu, setMenu] = useState(false);
+
 
   const status  = STATUS_STYLES[project.status] ?? STATUS_STYLES.active;
   const total   = project.total_tasks   ?? 0;
@@ -32,7 +33,6 @@ export default function ProjectCard({ project, onDelete }) {
 
   const handleDelete = (e) => {
     e.stopPropagation();
-    setMenu(false);
     onDelete?.(project.id);
   };
 
@@ -60,44 +60,10 @@ export default function ProjectCard({ project, onDelete }) {
           </div>
         </div>
 
-        {/* Context menu */}
-        <div className="relative flex-shrink-0" data-menu>
-          <button
-            onClick={(e) => { e.stopPropagation(); setMenu((v) => !v); }}
-            className="w-7 h-7 rounded-md flex items-center justify-center text-[#444] hover:text-[#aaa] hover:bg-[#222] transition-all opacity-0 group-hover:opacity-100"
-            aria-label="Project options"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="5" r="1" fill="currentColor" /><circle cx="12" cy="12" r="1" fill="currentColor" /><circle cx="12" cy="19" r="1" fill="currentColor" />
-            </svg>
-          </button>
-
-          {menu && (
-            <>
-              <div className="fixed inset-0 z-10" onClick={() => setMenu(false)} />
-              <div className="absolute right-0 top-8 z-20 bg-[#1e1e1e] border border-[#2a2a2a] rounded-lg py-1 w-40 shadow-xl shadow-black/40">
-                <button
-                  onClick={(e) => { e.stopPropagation(); setMenu(false); navigate(`/projects/${project.id}`); }}
-                  className="w-full text-left px-3 py-2 text-[12px] text-[#aaa] hover:text-white hover:bg-[#252525] transition-colors"
-                >
-                  Open project
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); setMenu(false); navigate(`/projects/${project.id}/settings`); }}
-                  className="w-full text-left px-3 py-2 text-[12px] text-[#aaa] hover:text-white hover:bg-[#252525] transition-colors"
-                >
-                  Settings
-                </button>
-                <div className="h-px bg-[#2a2a2a] my-1" />
-                <button
-                  onClick={handleDelete}
-                  className="w-full text-left px-3 py-2 text-[12px] text-[#e53935] hover:bg-[#2a1a1a] transition-colors"
-                >
-                  Delete project
-                </button>
-              </div>
-            </>
-          )}
+        {/* Edit / Delete icons */}
+        <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100">
+          <Pencil className="w-4 h-4 text-[#2196f3] hover:text-[#1976d2] cursor-pointer" onClick={(e) => { e.stopPropagation(); onEdit?.(project); }} />
+          <Trash2 className="w-4 h-4 text-[#e53935] hover:text-[#c62828] cursor-pointer" onClick={(e) => { e.stopPropagation(); handleDelete(e); }} />
         </div>
       </div>
 

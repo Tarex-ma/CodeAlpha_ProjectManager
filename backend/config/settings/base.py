@@ -81,6 +81,7 @@ LOCAL_APPS = [
     "apps.comments.apps.CommentsConfig",
     "apps.boards.apps.BoardsConfig",
     "apps.notifications.apps.NotificationsConfig",
+    "apps.teams.apps.TeamsConfig",
 ]
 DATABASES = {
     "default": {

@@ -3,7 +3,7 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import Profile, User
+from .models import Profile, User, UserSettings
 
 
 # ---------------------------------------------------------------------------
@@ -201,6 +201,10 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
 # ---------------------------------------------------------------------------
 
 class ChangePasswordSerializer(serializers.Serializer):
+    """
+    Serializer for changing password.
+    Requires old_password, new_password, and confirm_new_password.
+    """
     old_password = serializers.CharField(write_only=True, style={"input_type": "password"})
     new_password = serializers.CharField(
         write_only=True,
@@ -230,3 +234,25 @@ class ChangePasswordSerializer(serializers.Serializer):
         user = self.context["request"].user
         user.set_password(self.validated_data["new_password"])
         user.save(update_fields=["password"])
+
+
+class UserSettingsSerializer(serializers.ModelSerializer):
+    """Serializer for UserSettings model allowing user to view and update personal preferences.
+
+    Fields correspond to appearance, notifications, language/region, and other preferences.
+    """
+
+    class Meta:
+        model = UserSettings
+        fields = [
+            "theme",
+            "accent_color",
+            "notifications",
+            "language",
+            "timezone",
+            "default_dashboard",
+            "default_calendar_view",
+            "task_sorting",
+            "project_sorting",
+        ]
+        read_only_fields = []

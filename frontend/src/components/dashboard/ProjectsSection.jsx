@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProjectCard from './ProjectCard';
+import EditProjectModal from './EditProjectModal';
+import { updateProject } from '../../api/projectsApi';
 import { ProjectCardSkeleton } from '../common/Skeleton';
 
 const FILTERS = [
@@ -23,12 +25,19 @@ export default function ProjectsSection({ projects, loading, onOpenModal, onDele
   const navigate        = useNavigate();
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [editProject, setEditProject] = useState(null);
+  const [editOpen, setEditOpen] = useState(false);
+
+  const handleEdit = (project) => {
+    setEditProject(project);
+    setEditOpen(true);
+  };
 
   const filtered = useMemo(() => {
     let list = projects;
     if (filter !== 'all') list = list.filter((p) => p.status === filter);
     if (search.trim())    list = list.filter((p) =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      (p.name ?? '').toLowerCase().includes(search.toLowerCase()) ||
       (p.description ?? '').toLowerCase().includes(search.toLowerCase())
     );
     return list;
@@ -148,9 +157,23 @@ export default function ProjectsSection({ projects, loading, onOpenModal, onDele
               key={project.id}
               project={project}
               onDelete={onDelete}
+              onEdit={handleEdit}
             />
           ))}
         </div>
+      )}
+      {editOpen && editProject && (
+        <EditProjectModal
+          open={editOpen}
+          project={editProject}
+          onClose={() => setEditOpen(false)}
+          onSubmit={async (data) => {
+            await updateProject(editProject.id, data);
+            setEditOpen(false);
+            // Refetch projects after edit
+            if (typeof refetch === 'function') refetch();
+          }}
+        />
       )}
     </section>
   );

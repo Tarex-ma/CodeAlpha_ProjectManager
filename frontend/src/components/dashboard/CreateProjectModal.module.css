@@ -1,0 +1,240 @@
+/* CreateProjectModal.module.css */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  padding: 1rem;
+}
+
+.modalPanel {
+  width: 100%;
+  max-width: 740px;
+  background: #0d1117;
+  border: 1px solid #1e2535;
+  border-radius: 1rem;
+  padding: 2rem 2rem 1.75rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* ---------- Form fields ---------- */
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #cdd6f4;
+  letter-spacing: 0.01em;
+}
+
+.required {
+  color: #ef5350;
+  margin-left: 2px;
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  background: #131a24;
+  border: 1px solid #1e2d3d;
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  color: #e6edf3;
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  font-family: inherit;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: #4a5568;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  border-color: #388bfd;
+  box-shadow: 0 0 0 3px rgba(56, 139, 253, 0.15);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 96px;
+}
+
+.select {
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.25rem;
+}
+
+.select option {
+  background: #131a24;
+  color: #e6edf3;
+}
+
+/* ---------- Two-column grid ---------- */
+.gridTwoCols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 560px) {
+  .gridTwoCols {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Date inputs ---------- */
+.dateInput {
+  width: 100%;
+  background: #131a24;
+  border: 1px solid #1e2d3d;
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  color: #e6edf3;
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  font-family: inherit;
+  cursor: pointer;
+  color-scheme: dark;
+}
+
+.dateInput:focus {
+  border-color: #388bfd;
+  box-shadow: 0 0 0 3px rgba(56, 139, 253, 0.15);
+}
+
+/* ---------- Color picker ---------- */
+.colorRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+}
+
+.colorCircle {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  flex-shrink: 0;
+}
+
+.colorCircle:hover {
+  transform: scale(1.1);
+}
+
+.colorSelected {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+  transform: scale(1.08);
+}
+
+/* ---------- Footer ---------- */
+.modalFooter {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+
+.btnCancel {
+  background: transparent;
+  color: #8b949e;
+  border: 1px solid #1e2d3d;
+  padding: 0.65rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
+  font-family: inherit;
+}
+
+.btnCancel:hover {
+  background: #1e2535;
+  color: #e6edf3;
+  border-color: #2d3748;
+}
+
+.btnCreate {
+  background: #1d6feb;
+  color: #fff;
+  border: none;
+  padding: 0.65rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, box-shadow 0.18s;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.btnCreate:hover:not(:disabled) {
+  background: #388bfd;
+  box-shadow: 0 4px 14px rgba(29, 111, 235, 0.4);
+}
+
+.btnCreate:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------- Error states ---------- */
+.inputError {
+  border-color: #ef5350 !important;
+}
+
+.errorText {
+  font-size: 0.7rem;
+  color: #ef5350;
+  margin-top: 0.2rem;
+}
+
+.apiError {
+  background: rgba(239, 83, 80, 0.1);
+  border: 1px solid rgba(239, 83, 80, 0.3);
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.78rem;
+  color: #ef9a9a;
+}
+
+/* ---------- Spinner ---------- */
+.spinner {
+  width: 0.875rem;
+  height: 0.875rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

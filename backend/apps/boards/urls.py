@@ -18,6 +18,8 @@ from django.urls import include, path
 
 from .views import BoardViewSet
 
+board_aggregate = BoardViewSet.as_view({"get": "board"})
+
 # Manually wire the three URL shapes (no router needed for a ViewSet
 # that doesn't use the default router's list/detail pattern with pk in path)
 
@@ -30,4 +32,5 @@ urlpatterns = [
     path("reorder/",  board_reorder, name="board-reorder"),
     path("<int:pk>/", board_detail,  name="board-detail"),
     path("<int:board_pk>/tasks/", include("apps.tasks.urls")),
+    path("board/", board_aggregate, name="board-aggregate"),
 ]
